@@ -6,6 +6,7 @@ import java.awt.geom.Point2D;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Random;
 import java.util.Scanner;
 
 /**
@@ -14,13 +15,15 @@ import java.util.Scanner;
 
 public class Main
 {
-    public static final int BLAST_RADIUS = 10;
+    public static final int BLAST_RADIUS = 6;
+    public static final int MAX_WIND = 50;
     public static int[][] map;
     public static int h;
     public static int w;
     public static Point2D.Double player;
     public static Point2D.Double target;
     public static Point2D.Double blast;
+    public static Point2D.Double wind;
     public static int minH;
     public static int maxH;
 
@@ -44,6 +47,8 @@ public class Main
 
         while(true)
         {
+            generateWind();
+
             System.out.print("Angle: ");
             double angle = scanner.nextDouble();
             System.out.print("Distance: ");
@@ -60,6 +65,14 @@ public class Main
         }
         System.out.println("You won!");
         repaint();
+    }
+
+    private static void generateWind()
+    {
+        Random rand = new Random();
+        int x = rand.nextInt((MAX_WIND + MAX_WIND) + 1) -MAX_WIND;
+        int y = rand.nextInt((MAX_WIND + MAX_WIND) + 1) -MAX_WIND;
+        wind = new Point2D.Double(x,y);
     }
 
     private static void repaint()
@@ -79,7 +92,7 @@ public class Main
         blast = line.p2;
     }
 
-    private static void createWindow()
+    private static void createWindow() throws IOException
     {
         frame = new JFrame("The Game");
         frame.setLayout(new GridBagLayout());

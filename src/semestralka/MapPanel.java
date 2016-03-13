@@ -1,8 +1,13 @@
 package semestralka;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Created by Štěpán Martínek on 13.03.2016.
@@ -10,12 +15,16 @@ import java.awt.geom.Point2D;
 public class MapPanel extends JPanel
 {
 
+    private static final int ICON_SIZE = 15;
     public int width;
     public int height;
 
-    public static final int CROSS_SIZE = 10;
+    public static final int CROSS_SIZE = 5;
 
-    MapPanel(int w, int h)
+    BufferedImage player;
+    BufferedImage target;
+
+    MapPanel(int w, int h) throws IOException
     {
         width = w;
         height = h;
@@ -24,6 +33,9 @@ public class MapPanel extends JPanel
         setMinimumSize(dimension);
         setMaximumSize(dimension);
         setVisible(true);
+
+        player = ImageIO.read(new File("./images/Pacman.png"));
+        target = ImageIO.read(new File("./images/Ghost.png"));
     }
 
     @Override
@@ -40,11 +52,56 @@ public class MapPanel extends JPanel
         drawPlayer(g);
         drawTarget(g);
         drawBlastRadius(g);
+        drawWindIndicator(g);
+    }
+
+    private void drawWindIndicator(Graphics2D g)
+    {
+        if (Main.wind == null)
+            return;
+
+        int startX = 1+Main.MAX_WIND;
+        int startY = height-Main.MAX_WIND-1;
+
+        g.setColor(Color.PINK);
+        //g.drawRect(0,height - Main.MAX_WIND*2,Main.MAX_WIND*2,height);
+        g.setColor(Color.MAGENTA);
+        drawArrow(g,startX,startY,(int)(startX + Main.wind.x), (int)(startY - Main.wind.y),2);
+    }
+
+    public void drawArrow(Graphics2D g2,double x1, double y1, double x2, double y2,double lineThickness)
+    {
+
+        Double sx, sy, dv, kx, ky;
+        g2.setStroke(new BasicStroke((float)lineThickness));
+
+        g2.draw(new Line2D.Double(x1, y1, x2, y2));
+
+        sx = x2 - x1;
+        sy = y2 - y1;
+
+        dv = Math.sqrt(sx*sx + sy*sy);
+
+        sx /= dv;
+        sy /= dv;
+
+        kx = -sy;
+        ky = sx;
+
+        kx *= lineThickness;
+        ky *= lineThickness;
+        sx *= lineThickness;
+        sy *= lineThickness;
+
+        g2.draw(new Line2D.Double(x2 - sx + kx, y2 - sy + ky, x2, y2));
+        g2.draw(new Line2D.Double(x2 - sx - kx, y2 - sy - ky, x2, y2));
+        g2.setStroke(new BasicStroke(1));
+
     }
 
     private void drawBlastRadius(Graphics2D g)
     {
-        g.setColor(Color.RED);
+        g.setColor(Color.ORANGE);
         Point2D.Double point = Main.blast;
         if (point == null)
             return;
@@ -54,13 +111,15 @@ public class MapPanel extends JPanel
 
     private void drawTarget(Graphics2D g)
     {
-        drawCross(g, Color.RED,Main.target);
+        //drawCross(g, Color.RED,Main.target);
+        g.drawImage(target,(int)(Main.target.x-ICON_SIZE/2),(int)(Main.target.y-ICON_SIZE/2),ICON_SIZE,ICON_SIZE,null);
     }
 
 
     private void drawPlayer(Graphics2D g)
     {
-        drawCross(g, Color.BLUE,Main.player);
+        //drawCross(g, Color.BLUE,Main.player);
+        g.drawImage(player,(int)(Main.player.x-ICON_SIZE/2),(int)(Main.player.y-ICON_SIZE/2),ICON_SIZE,ICON_SIZE,null);
     }
 
     private void drawCross(Graphics2D g, Color color, Point2D.Double point)
