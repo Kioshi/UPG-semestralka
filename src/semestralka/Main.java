@@ -8,6 +8,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Scanner;
 
+/**
+ * Created by Štěpán Martínek on 13.03.2016.
+ */
+
 public class Main
 {
     public static final int BLAST_RADIUS = 10;
@@ -19,15 +23,16 @@ public class Main
     public static Point2D.Double blast;
     public static int minH;
     public static int maxH;
-    public static MapPanel mapPanel;
+
+    public static JFrame frame;
 
     public static void main(String[] args) throws IOException
     {
-        loadMap();
+        loadMap(args);
         createWindow();
         play();
-
     }
+
 
     private static void play()
     {
@@ -50,11 +55,17 @@ public class Main
                 break;
 
             System.out.println("Nope. Try again!");
-            mapPanel.repaint();
+            repaint();
 
         }
         System.out.println("You won!");
-        mapPanel.repaint();
+        repaint();
+    }
+
+    private static void repaint()
+    {
+        frame.toFront();
+        frame.repaint();
     }
 
     private static void calculateBlastLocation(double angle, double distance)
@@ -70,20 +81,19 @@ public class Main
 
     private static void createWindow()
     {
-        JFrame frame = new JFrame("The Game");
-        mapPanel = new MapPanel(w, h);
-
+        frame = new JFrame("The Game");
         frame.setLayout(new GridBagLayout());
-        frame.add(mapPanel);
+        frame.add(new MapPanel(w, h));
         frame.setSize(w + 50, h + 50);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
+        frame.setAlwaysOnTop(true);
         frame.setVisible(true);
     }
 
-    public static void loadMap() throws IOException
+    public static void loadMap(String[] args) throws IOException
     {
-        DataInputStream dataInputStream = new DataInputStream(new FileInputStream("./terrens/terrain257x257_300_600.ter"));
+        DataInputStream dataInputStream = new DataInputStream(new FileInputStream("./terrens/" + (args.length > 0 ? args[0] : "terrain257x257_300_600")+".ter"));
 
         w = dataInputStream.readInt();
         h = dataInputStream.readInt();

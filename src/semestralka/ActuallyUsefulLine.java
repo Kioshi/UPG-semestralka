@@ -3,7 +3,7 @@ package semestralka;
 import java.awt.geom.Point2D;
 
 /**
- * Created by Kexik on 13.03.2016.
+ * Created by Štěpán Martínek on 13.03.2016.
  */
 public class ActuallyUsefulLine
 {
@@ -90,9 +90,7 @@ public class ActuallyUsefulLine
         double y = p2.y - p1.y;
 
         double len = Math.sqrt(x*x + y*y);
-        ActuallyUsefulLine f = new ActuallyUsefulLine(p1, new Point2D.Double(p1.x + x/len, p1.y + y/len));
-
-        return f;
+        return new ActuallyUsefulLine(p1, new Point2D.Double(p1.x + x/len, p1.y + y/len));
     }
 
     double dx()

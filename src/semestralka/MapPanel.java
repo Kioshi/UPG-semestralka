@@ -5,7 +5,7 @@ import java.awt.*;
 import java.awt.geom.Point2D;
 
 /**
- * Created by Kexik on 13.03.2016.
+ * Created by Štěpán Martínek on 13.03.2016.
  */
 public class MapPanel extends JPanel
 {
