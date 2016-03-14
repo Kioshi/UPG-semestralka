@@ -16,6 +16,7 @@ public class MapPanel extends JPanel
 {
 
     private static final int ICON_SIZE = 15;
+    private static final int WIND_SCALE = 5;
     public int width;
     public int height;
 
@@ -60,13 +61,13 @@ public class MapPanel extends JPanel
         if (Main.wind == null)
             return;
 
-        int startX = 1+Main.MAX_WIND;
-        int startY = height-Main.MAX_WIND-1;
+        int startX = 1+Main.MAX_WIND*WIND_SCALE;
+        int startY = height-Main.MAX_WIND*WIND_SCALE-1;
 
         g.setColor(Color.PINK);
         //g.drawRect(0,height - Main.MAX_WIND*2,Main.MAX_WIND*2,height);
         g.setColor(Color.MAGENTA);
-        drawArrow(g,startX,startY,(int)(startX + Main.wind.x), (int)(startY - Main.wind.y),2);
+        drawArrow(g,startX,startY,(int)(startX + Main.wind.x*WIND_SCALE), (int)(startY - Main.wind.y*WIND_SCALE),2);
     }
 
     public void drawArrow(Graphics2D g2,double x1, double y1, double x2, double y2,double lineThickness)
@@ -106,7 +107,7 @@ public class MapPanel extends JPanel
         if (point == null)
             return;
 
-        g.fillOval((int)(point.x - Main.BLAST_RADIUS/2), (int)(point.y  - Main.BLAST_RADIUS/2), Main.BLAST_RADIUS, Main.BLAST_RADIUS);
+        g.fillOval((int)(point.x - Main.BLAST_RADIUS), (int)(point.y  - Main.BLAST_RADIUS), Main.BLAST_RADIUS*2, Main.BLAST_RADIUS*2);
     }
 
     private void drawTarget(Graphics2D g)

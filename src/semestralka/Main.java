@@ -17,8 +17,8 @@ import java.util.Scanner;
 
 public class Main
 {
-    public static final int BLAST_RADIUS = 6;
-    public static final int MAX_WIND = 50;
+    public static final int BLAST_RADIUS = 3;
+    public static final int MAX_WIND = 5;
     public static int[][] map;
     public static int h;
     public static int w;
@@ -31,11 +31,21 @@ public class Main
 
     public static JFrame frame;
 
+    public static Scanner scanner;
+
     public static void main(String[] args) throws IOException
     {
-        loadMap(args);
-        createWindow();
-        play();
+        scanner = new Scanner(System.in);
+        do
+        {
+            loadMap(args);
+            createWindow();
+            play();
+
+            System.out.println("Press Y to play again.");
+        }
+        while(scanner.next().toUpperCase().equals("Y"));
+        frame.dispose();
     }
 
 
@@ -44,8 +54,6 @@ public class Main
         System.out.println("Player-Target air distance: " + player.distance(target));
         System.out.println("Player heigh: " + map[(int)player.x][(int)player.y]);
         System.out.println("Target heigh: " + map[(int)target.x][(int)target.y]);
-
-        Scanner scanner = new Scanner(System.in);
 
         while(true)
         {
@@ -97,7 +105,7 @@ public class Main
         double g = 10.0;
         double b = 0.05;
         Point3D windSpeed = new Point3D(wind.x, wind.y, 0);
-        //{
+        {
             ActuallyUsefulLine l1 = new ActuallyUsefulLine();
             l1.setAngle(elevation);
             l1.setLength(startSpeed);
@@ -105,7 +113,9 @@ public class Main
             l2.setAngle(angle);
             l2.setLength(l1.p2.x);
             rockSpd = new Point3D(l2.p2.x, l2.p2.y, -l1.p2.y);
-        //}
+        }
+
+        //System.out.println(rockPos.toString() + " " + rockSpd.toString());
 
         while(true)
         {
@@ -114,14 +124,17 @@ public class Main
             Point3D newRockSpd = rockSpd.add(new Point3D(0,0,-1).multiply(g*deltaT));
             Point3D temp = rockSpd.subtract(windSpeed);
             newRockSpd = newRockSpd.add(temp);
-            newRockPos = newRockSpd.multiply(b*deltaT);
-            //newRockSpd = newRockSpd.add(rockSpd.subtract(windSpeed)).multiply(b*deltaT);
+            newRockSpd = newRockSpd.multiply(b*deltaT);
+            newRockSpd = newRockSpd.add(rockSpd.subtract(windSpeed)).multiply(b*deltaT);
 
             rockPos = newRockPos;
             rockSpd = newRockSpd;
 
+            //System.out.println(rockPos.toString() + " " + rockSpd.toString());
+
             if (rockPos.getX() < 0 || rockPos.getY() < 0 || rockPos.getX() >= w || rockPos.getY() >= h)
             {
+                blast = null;
                 break;
             }
 
