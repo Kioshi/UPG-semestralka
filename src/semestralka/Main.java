@@ -1,5 +1,7 @@
 package semestralka;
 
+import javafx.geometry.Point3D;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Point2D;
@@ -51,20 +53,85 @@ public class Main
 
             System.out.print("Angle: ");
             double angle = scanner.nextDouble();
-            System.out.print("Distance: ");
+            /*System.out.print("Distance: ");
             double distance = scanner.nextDouble();
-
             calculateBlastLocation(angle,distance);
+            */
+            System.out.println("Elevation: ");
+            double elevation = scanner.nextDouble();
+
+            System.out.println("Rocket speed: ");
+            double startSpeed = scanner.nextDouble();
+            launchRocket(angle,elevation,startSpeed);
+
+            if (blast == null)
+            {
+                System.out.println("Rocket out of playground!");
+                repaint();
+                continue;
+            }
 
             if (target.distance(blast) <= BLAST_RADIUS)
+            {
+                System.out.println("You won!");
                 break;
+            }
+            if (player.distance(blast) <= BLAST_RADIUS)
+            {
+                System.out.println("Game over!");
+                break;
+            }
 
             System.out.println("Nope. Try again!");
             repaint();
 
         }
-        System.out.println("You won!");
         repaint();
+    }
+
+    private static void launchRocket(double angle, double elevation, double startSpeed)
+    {
+        Point3D rockPos = new Point3D(player.x, player.y, (double)map[(int)player.x][(int)player.y]);
+        double deltaT = 0.01;
+        Point3D rockSpd;
+        double g = 10.0;
+        double b = 0.05;
+        Point3D windSpeed = new Point3D(wind.x, wind.y, 0);
+        //{
+            ActuallyUsefulLine l1 = new ActuallyUsefulLine();
+            l1.setAngle(elevation);
+            l1.setLength(startSpeed);
+            ActuallyUsefulLine l2 = new ActuallyUsefulLine();
+            l2.setAngle(angle);
+            l2.setLength(l1.p2.x);
+            rockSpd = new Point3D(l2.p2.x, l2.p2.y, -l1.p2.y);
+        //}
+
+        while(true)
+        {
+            Point3D newRockPos = rockPos.add(rockSpd);
+
+            Point3D newRockSpd = rockSpd.add(new Point3D(0,0,-1).multiply(g*deltaT));
+            Point3D temp = rockSpd.subtract(windSpeed);
+            newRockSpd = newRockSpd.add(temp);
+            newRockPos = newRockSpd.multiply(b*deltaT);
+            //newRockSpd = newRockSpd.add(rockSpd.subtract(windSpeed)).multiply(b*deltaT);
+
+            rockPos = newRockPos;
+            rockSpd = newRockSpd;
+
+            if (rockPos.getX() < 0 || rockPos.getY() < 0 || rockPos.getX() >= w || rockPos.getY() >= h)
+            {
+                break;
+            }
+
+            if (rockPos.getZ() <= map[(int)rockPos.getX()][(int)rockPos.getY()])
+            {
+                blast = new Point2D.Double(rockPos.getX(),rockPos.getY());
+                break;
+            }
+        }
+
     }
 
     private static void generateWind()
@@ -115,8 +182,9 @@ public class Main
 
         map = new int[w][h];
 
-        for (int i =0; i <w; i++)
-            for (int j =0; j <h; j++)
+        //wtf why
+        for (int j =0; j <h; j++)
+            for (int i =0; i <w; i++)
             {
                 map[i][j] = dataInputStream.readInt();
 
