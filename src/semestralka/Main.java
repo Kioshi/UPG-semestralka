@@ -5,9 +5,12 @@ import javafx.geometry.Point3D;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -18,7 +21,7 @@ import java.util.Scanner;
 public class Main
 {
     public static final int BLAST_RADIUS = 3;
-    public static final int MAX_WIND = 5;
+    public static final int MAX_WIND = 10;
     public static int[][] map;
     public static int h;
     public static int w;
@@ -26,8 +29,8 @@ public class Main
     public static Point2D.Double target;
     public static Point2D.Double blast;
     public static Point2D.Double wind;
-    public static int minH;
-    public static int maxH;
+    public static BufferedImage mapImage;
+    public static ArrayList<Point3D> trajectoryPoints = new ArrayList<>();
 
     public static JFrame frame;
 
@@ -36,10 +39,11 @@ public class Main
     public static void main(String[] args) throws IOException
     {
         scanner = new Scanner(System.in);
+
+        loadMap(args);
+        createWindow();
         do
         {
-            loadMap(args);
-            createWindow();
             play();
 
             System.out.println("Press Y to play again.");
@@ -55,10 +59,11 @@ public class Main
         System.out.println("Player heigh: " + map[(int)player.x][(int)player.y]);
         System.out.println("Target heigh: " + map[(int)target.x][(int)target.y]);
 
+        generateWind();
+        repaint();
+
         while(true)
         {
-            generateWind();
-
             System.out.print("Angle: ");
             double angle = scanner.nextDouble();
             /*System.out.print("Distance: ");
@@ -99,6 +104,7 @@ public class Main
 
     private static void launchRocket(double angle, double elevation, double startSpeed)
     {
+        trajectoryPoints.clear();
         Point3D rockPos = new Point3D(player.x, player.y, (double)map[(int)player.x][(int)player.y]);
         double deltaT = 0.01;
         Point3D rockSpd;
@@ -119,13 +125,21 @@ public class Main
 
         while(true)
         {
+            //first we use old speed
             Point3D newRockPos = rockPos.add(rockSpd);
 
+            //save new position
+            trajectoryPoints.add(newRockPos);
+
+            //recaluculate speed
+            // y = vt + (0,0,-1)*g*deltaT
             Point3D newRockSpd = rockSpd.add(new Point3D(0,0,-1).multiply(g*deltaT));
+            // y = vw - vt
             Point3D temp = rockSpd.subtract(windSpeed);
+            // (x)*b*deltaT
+            temp = temp.multiply(deltaT/b);
+            // newSpeed = y + x
             newRockSpd = newRockSpd.add(temp);
-            newRockSpd = newRockSpd.multiply(b*deltaT);
-            newRockSpd = newRockSpd.add(rockSpd.subtract(windSpeed)).multiply(b*deltaT);
 
             rockPos = newRockPos;
             rockSpd = newRockSpd;
@@ -194,6 +208,8 @@ public class Main
         target = new Point2D.Double(dataInputStream.readInt(),dataInputStream.readInt());
 
         map = new int[w][h];
+        int minH = Integer.MAX_VALUE;
+        int maxH = Integer.MIN_VALUE;
 
         //wtf why
         for (int j =0; j <h; j++)
@@ -206,6 +222,18 @@ public class Main
 
                 minH = Math.min(minH,map[i][j]);
                 maxH = Math.max(maxH,map[i][j]);
+            }
+
+        mapImage = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        int[] srcPixels = ((DataBufferInt) mapImage.getRaster().getDataBuffer()).getData();
+
+        for (int j =0; j <h; j++)
+            for (int i =0; i <w; i++)
+            {
+                int color = (int)(((map[i][j]-minH) / (double)(maxH-minH))*0xFF);
+                if (minH == maxH)
+                    color = 128;
+                srcPixels[j * w + i] = new Color(color, color, color, 0xFF).getRGB();
             }
 
     }

@@ -1,5 +1,7 @@
 package semestralka;
 
+import javafx.geometry.Point3D;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -17,6 +19,7 @@ public class MapPanel extends JPanel
 
     private static final int ICON_SIZE = 15;
     private static final int WIND_SCALE = 5;
+    private static final int TRAJECTORY_POINT_SIZE = 3;
     public int width;
     public int height;
 
@@ -54,6 +57,7 @@ public class MapPanel extends JPanel
         drawTarget(g);
         drawBlastRadius(g);
         drawWindIndicator(g);
+        drawTrajectory(g);
     }
 
     private void drawWindIndicator(Graphics2D g)
@@ -134,19 +138,20 @@ public class MapPanel extends JPanel
 
     private void drawMap(Graphics2D g)
     {
-        g.setColor(Color.WHITE);
-        g.fillRect(0, 0, width, height);
+        g.drawImage(Main.mapImage,0,0,width,height,null);
+    }
 
-        for (int i =0; i <width; i++)
-            for (int j =0; j <height; j++)
-            {
-                int point = Main.map[i][j];
-                int color = (int)(((point-Main.minH) / (double)(Main.maxH-Main.minH))*0xFF);
-                if (Main.minH == Main.maxH)
-                    color = 128;
-                g.setColor(new Color(color,color,color,0xFF));
-                g.fillRect(i,j,1,1);
-            }
+    void drawTrajectory(Graphics2D g)
+    {
+        if (Main.trajectoryPoints.isEmpty())
+            return;
+
+        for (Point3D point : Main.trajectoryPoints)
+        {
+            g.setColor(Color.RED);
+            g.fillOval((int)point.getX() - TRAJECTORY_POINT_SIZE, (int)point.getY() - TRAJECTORY_POINT_SIZE,  TRAJECTORY_POINT_SIZE*2, TRAJECTORY_POINT_SIZE*2);
+            g.drawString(""+point.getZ(),(float)point.getX(),(float)point.getY());
+        }
     }
 
 }
