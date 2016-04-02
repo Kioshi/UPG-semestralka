@@ -106,18 +106,21 @@ public class Main
     {
         trajectoryPoints.clear();
         Point3D rockPos = new Point3D(player.x, player.y, (double)map[(int)player.x][(int)player.y]);
+        trajectoryPoints.add(rockPos);
         double deltaT = 0.01;
         Point3D rockSpd;
         double g = 10.0;
         double b = 0.05;
         Point3D windSpeed = new Point3D(wind.x, wind.y, 0);
+
         {
             ActuallyUsefulLine l1 = new ActuallyUsefulLine();
             l1.setAngle(elevation);
             l1.setLength(startSpeed);
             ActuallyUsefulLine l2 = new ActuallyUsefulLine();
-            l2.setAngle(angle);
+            l2.setAngle(0);
             l2.setLength(l1.p2.x);
+            l2.setAngle(angle);
             rockSpd = new Point3D(l2.p2.x, l2.p2.y, -l1.p2.y);
         }
 
@@ -135,7 +138,7 @@ public class Main
             // y = vt + (0,0,-1)*g*deltaT
             Point3D newRockSpd = rockSpd.add(new Point3D(0,0,-1).multiply(g*deltaT));
             // y = vw - vt
-            Point3D temp = rockSpd.subtract(windSpeed);
+            Point3D temp = windSpeed.add(rockSpd);
             // (x)*b*deltaT
             temp = temp.multiply(deltaT/b);
             // newSpeed = y + x
@@ -158,7 +161,6 @@ public class Main
                 break;
             }
         }
-
     }
 
     private static void generateWind()
@@ -167,6 +169,7 @@ public class Main
         int x = rand.nextInt((MAX_WIND + MAX_WIND) + 1) -MAX_WIND;
         int y = rand.nextInt((MAX_WIND + MAX_WIND) + 1) -MAX_WIND;
         wind = new Point2D.Double(x,y);
+        //wind = new Point2D.Double(0,0);
     }
 
     private static void repaint()
@@ -211,7 +214,6 @@ public class Main
         int minH = Integer.MAX_VALUE;
         int maxH = Integer.MIN_VALUE;
 
-        //wtf why
         for (int j =0; j <h; j++)
             for (int i =0; i <w; i++)
             {
@@ -235,6 +237,5 @@ public class Main
                     color = 128;
                 srcPixels[j * w + i] = new Color(color, color, color, 0xFF).getRGB();
             }
-
     }
 }

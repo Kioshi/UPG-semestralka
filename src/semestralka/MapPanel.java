@@ -68,10 +68,15 @@ public class MapPanel extends JPanel
         int startX = 1+Main.MAX_WIND*WIND_SCALE;
         int startY = height-Main.MAX_WIND*WIND_SCALE-1;
 
-        g.setColor(Color.PINK);
+        //g.setColor(Color.PINK);
         //g.drawRect(0,height - Main.MAX_WIND*2,Main.MAX_WIND*2,height);
-        g.setColor(Color.MAGENTA);
-        drawArrow(g,startX,startY,(int)(startX + Main.wind.x*WIND_SCALE), (int)(startY - Main.wind.y*WIND_SCALE),2);
+        //g.setColor(Color.MAGENTA);
+        double x = Main.wind.distance(0,0)/new Point2D.Double(Main.MAX_WIND,Main.MAX_WIND).distance(0,0);
+        Color c = new Color(255-(int)x,(int)x,0);
+
+
+        g.setColor(new Color(Color.HSBtoRGB(((float)x)/3.0f,1.0f,1.0f)));
+        drawArrow(g,startX,startY,(int)(startX + Main.wind.x*WIND_SCALE), (int)(startY + Main.wind.y*WIND_SCALE),2);
     }
 
     public void drawArrow(Graphics2D g2,double x1, double y1, double x2, double y2,double lineThickness)
