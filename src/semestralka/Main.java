@@ -18,10 +18,13 @@ import java.util.Scanner;
  * Created by Štěpán Martínek on 13.03.2016.
  */
 
+
 public class Main
 {
+    public static final boolean DEBUG = false; // T-T zlatej #define DEBUG nebo aspon globalni konstanta
     public static final int BLAST_RADIUS = 3;
     public static final int MAX_WIND = 10;
+    private static final int ATTEMPTS_PER_WIND = 5;
     public static int[][] map;
     public static int h;
     public static int w;
@@ -59,34 +62,49 @@ public class Main
         System.out.println("Player heigh: " + map[(int)player.x][(int)player.y]);
         System.out.println("Target heigh: " + map[(int)target.x][(int)target.y]);
 
-        generateWind();
-        repaint();
+        int attempts = 0;
 
         while(true)
         {
+            if (attempts++ % ATTEMPTS_PER_WIND == 0)
+            {
+                generateWind();
+                repaint();
+            }
+
+            System.out.println();
             System.out.print("Angle: ");
             double angle = scanner.nextDouble();
-            /*System.out.print("Distance: ");
-            double distance = scanner.nextDouble();
-            calculateBlastLocation(angle,distance);
-            */
-            System.out.println("Elevation: ");
+            System.out.print("Elevation: ");
             double elevation = scanner.nextDouble();
+            if (elevation < 0.0 || elevation > 90.0)
+            {
+                System.out.println("Wrong elevation! Elevation must be in 0-90 interval");
+                attempts--;
+                continue;
+            }
 
-            System.out.println("Rocket speed: ");
+            System.out.print("Rocket speed: ");
             double startSpeed = scanner.nextDouble();
+            if (startSpeed < 0.0)
+            {
+                System.out.println("Wrong rocket speed! Rocket speed cant be negative.");
+                attempts--;
+                continue;
+            }
             launchRocket(angle,elevation,startSpeed);
 
             if (blast == null)
             {
                 System.out.println("Rocket out of playground!");
+                System.out.println(ActuallyUsefulLine.missStrings[new Random().nextInt(ActuallyUsefulLine.MAX_MISS_STRINGS)]);
                 repaint();
                 continue;
             }
 
             if (target.distance(blast) <= BLAST_RADIUS)
             {
-                System.out.println("You won!");
+                System.out.println("You won! " + (attempts > 1 ? "If you really consider this win when it took you so many ("+attempts+") attempts!" : ""));
                 break;
             }
             if (player.distance(blast) <= BLAST_RADIUS)
@@ -97,7 +115,6 @@ public class Main
 
             System.out.println("Nope. Try again!");
             repaint();
-
         }
         repaint();
     }
@@ -106,7 +123,6 @@ public class Main
     {
         trajectoryPoints.clear();
         Point3D rockPos = new Point3D(player.x, player.y, (double)map[(int)player.x][(int)player.y]);
-        trajectoryPoints.add(rockPos);
         double deltaT = 0.01;
         Point3D rockSpd;
         double g = 10.0;
@@ -124,12 +140,13 @@ public class Main
             rockSpd = new Point3D(l2.p2.x, l2.p2.y, -l1.p2.y);
         }
 
-        //System.out.println(rockPos.toString() + " " + rockSpd.toString());
+        if (DEBUG)
+            System.out.println(rockPos.toString() + " " + rockSpd.toString());
 
         while(true)
         {
             //first we use old speed
-            Point3D newRockPos = rockPos.add(rockSpd);
+            Point3D newRockPos = rockPos.add(rockSpd.multiply(deltaT));
 
             //save new position
             trajectoryPoints.add(newRockPos);
@@ -138,18 +155,19 @@ public class Main
             // y = vt + (0,0,-1)*g*deltaT
             Point3D newRockSpd = rockSpd.add(new Point3D(0,0,-1).multiply(g*deltaT));
             // y = vw - vt
-            Point3D temp = windSpeed.add(rockSpd);
+            Point3D temp = windSpeed.subtract(rockSpd);
             // (x)*b*deltaT
-            temp = temp.multiply(deltaT/b);
+            temp = temp.multiply(deltaT*b);
             // newSpeed = y + x
             newRockSpd = newRockSpd.add(temp);
 
             rockPos = newRockPos;
             rockSpd = newRockSpd;
 
-            //System.out.println(rockPos.toString() + " " + rockSpd.toString());
+            if (DEBUG)
+                System.out.println(rockPos.toString() + " " + map[Math.max(0,Math.min((int)rockPos.getX(),w-1))][Math.max(0,Math.min((int)rockPos.getY(),h-1))]+ " " + rockSpd.toString());
 
-            if (rockPos.getX() < 0 || rockPos.getY() < 0 || rockPos.getX() >= w || rockPos.getY() >= h)
+            if (rockPos.getX() < 0 || rockPos.getY() < 0 || rockPos.getX() > w || rockPos.getY() > h)
             {
                 blast = null;
                 break;
@@ -166,27 +184,18 @@ public class Main
     private static void generateWind()
     {
         Random rand = new Random();
-        int x = rand.nextInt((MAX_WIND + MAX_WIND) + 1) -MAX_WIND;
-        int y = rand.nextInt((MAX_WIND + MAX_WIND) + 1) -MAX_WIND;
-        wind = new Point2D.Double(x,y);
-        //wind = new Point2D.Double(0,0);
+
+        ActuallyUsefulLine line = new ActuallyUsefulLine();
+        line.setAngle(360.0*rand.nextDouble());
+        line.setLength((double)rand.nextInt(MAX_WIND)+1);
+
+        wind = new Point2D.Double(line.p2.x,line.p2.y);
     }
 
     private static void repaint()
     {
         frame.toFront();
         frame.repaint();
-    }
-
-    private static void calculateBlastLocation(double angle, double distance)
-    {
-        ActuallyUsefulLine line = new ActuallyUsefulLine();
-
-        line.setP1(player);
-        line.setLength(distance);
-        line.setAngle(angle);
-
-        blast = line.p2;
     }
 
     private static void createWindow() throws IOException
@@ -238,4 +247,5 @@ public class Main
                 srcPixels[j * w + i] = new Color(color, color, color, 0xFF).getRGB();
             }
     }
+
 }

@@ -17,9 +17,10 @@ import java.io.IOException;
 public class MapPanel extends JPanel
 {
 
+    private static final boolean DEBUG = Main.DEBUG;
     private static final int ICON_SIZE = 15;
-    private static final int WIND_SCALE = 5;
-    private static final int TRAJECTORY_POINT_SIZE = 3;
+    private static final int WIND_SCALE = 2;
+    private static final int TRAJECTORY_POINT_SIZE = 1;
     public int width;
     public int height;
 
@@ -53,11 +54,11 @@ public class MapPanel extends JPanel
         super.paint(g);
 
         drawMap(g);
+        drawTrajectory(g);
         drawPlayer(g);
         drawTarget(g);
         drawBlastRadius(g);
         drawWindIndicator(g);
-        drawTrajectory(g);
     }
 
     private void drawWindIndicator(Graphics2D g)
@@ -65,18 +66,17 @@ public class MapPanel extends JPanel
         if (Main.wind == null)
             return;
 
-        int startX = 1+Main.MAX_WIND*WIND_SCALE;
-        int startY = height-Main.MAX_WIND*WIND_SCALE-1;
-
-        //g.setColor(Color.PINK);
-        //g.drawRect(0,height - Main.MAX_WIND*2,Main.MAX_WIND*2,height);
-        //g.setColor(Color.MAGENTA);
-        double x = Main.wind.distance(0,0)/new Point2D.Double(Main.MAX_WIND,Main.MAX_WIND).distance(0,0);
-        Color c = new Color(255-(int)x,(int)x,0);
+        int startX = 5+Main.MAX_WIND*WIND_SCALE;
+        int startY = height-Main.MAX_WIND*WIND_SCALE-5;
 
 
-        g.setColor(new Color(Color.HSBtoRGB(((float)x)/3.0f,1.0f,1.0f)));
-        drawArrow(g,startX,startY,(int)(startX + Main.wind.x*WIND_SCALE), (int)(startY + Main.wind.y*WIND_SCALE),2);
+        ActuallyUsefulLine line = new ActuallyUsefulLine(new Point2D.Double(0,0),Main.wind);
+        double x = line.length()/(double)Main.MAX_WIND;
+        line.setLength(Main.MAX_WIND);
+        g.setColor(new Color(Color.HSBtoRGB(0.3333f-(float)x/3.0f,1.0f,1.0f)));
+        drawArrow(g,startX,startY,(int)(startX + line.p2.x*WIND_SCALE), (int)(startY + line.p2.y*WIND_SCALE),2);
+        if (DEBUG)
+            g.drawString(String.format("%.2f",x), startX, startY - Main.MAX_WIND * WIND_SCALE);
     }
 
     public void drawArrow(Graphics2D g2,double x1, double y1, double x2, double y2,double lineThickness)
@@ -121,14 +121,12 @@ public class MapPanel extends JPanel
 
     private void drawTarget(Graphics2D g)
     {
-        //drawCross(g, Color.RED,Main.target);
         g.drawImage(target,(int)(Main.target.x-ICON_SIZE/2),(int)(Main.target.y-ICON_SIZE/2),ICON_SIZE,ICON_SIZE,null);
     }
 
 
     private void drawPlayer(Graphics2D g)
     {
-        //drawCross(g, Color.BLUE,Main.player);
         g.drawImage(player,(int)(Main.player.x-ICON_SIZE/2),(int)(Main.player.y-ICON_SIZE/2),ICON_SIZE,ICON_SIZE,null);
     }
 
@@ -155,7 +153,6 @@ public class MapPanel extends JPanel
         {
             g.setColor(Color.RED);
             g.fillOval((int)point.getX() - TRAJECTORY_POINT_SIZE, (int)point.getY() - TRAJECTORY_POINT_SIZE,  TRAJECTORY_POINT_SIZE*2, TRAJECTORY_POINT_SIZE*2);
-            g.drawString(""+point.getZ(),(float)point.getX(),(float)point.getY());
         }
     }
 
