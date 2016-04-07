@@ -16,6 +16,7 @@ import java.util.Scanner;
 
 /**
  * Created by Štěpán Martínek on 13.03.2016.
+ *
  */
 
 
@@ -58,7 +59,7 @@ public class Main
 
     private static void play()
     {
-        System.out.println("Player-Target air distance: " + player.distance(target));
+        System.out.println("Player-Target air distance: " + player.distance(target)*10.0);
         System.out.println("Player heigh: " + map[(int)player.x][(int)player.y]);
         System.out.println("Target heigh: " + map[(int)target.x][(int)target.y]);
 
