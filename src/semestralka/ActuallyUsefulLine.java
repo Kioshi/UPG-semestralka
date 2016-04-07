@@ -23,14 +23,14 @@ public class ActuallyUsefulLine
     }
 
     static double deg2rad(double x)
-{
-    return x * 0.01745329251994329576923690768489;    /* pi/180 */
-}
+    {
+        return x * Math.PI/180.0;
+    }
 
     static double rad2deg(double x)
-{
-    return x * 57.295779513082320876798154814105;    /* 180/pi */
-}
+    {
+        return x * 180.0/Math.PI;
+    }
 
     double length()
     {
