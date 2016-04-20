@@ -210,7 +210,7 @@ public class Main
         frame.setVisible(true);
     }
 
-    public static void loadMap(String[] args) throws IOException
+    private static void loadMap(String[] args) throws IOException
     {
         DataInputStream dataInputStream = new DataInputStream(new FileInputStream("./terrens/" + (args.length > 0 ? args[0] : "terrain257x257_300_600")+".ter"));
 
