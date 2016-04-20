@@ -35,6 +35,7 @@ public class Main
     public static Point2D.Double wind;
     public static BufferedImage mapImage;
     public static ArrayList<Point3D> trajectoryPoints = new ArrayList<>();
+    private static final double PIXELS_PER_METER = 10.0;
 
     public static JFrame frame;
 
@@ -59,7 +60,7 @@ public class Main
 
     private static void play()
     {
-        System.out.println("Player-Target air distance: " + player.distance(target)*10.0);
+        System.out.println("Player-Target air distance: " + player.distance(target)*PIXELS_PER_METER);
         System.out.println("Player heigh: " + map[(int)player.x][(int)player.y]);
         System.out.println("Target heigh: " + map[(int)target.x][(int)target.y]);
 
@@ -132,12 +133,9 @@ public class Main
 
         {
             ActuallyUsefulLine l1 = new ActuallyUsefulLine();
-            l1.setAngle(elevation);
-            l1.setLength(startSpeed);
+            l1.setAngle(elevation).setLength(startSpeed);
             ActuallyUsefulLine l2 = new ActuallyUsefulLine();
-            l2.setAngle(0);
-            l2.setLength(l1.p2.x);
-            l2.setAngle(angle);
+            l2.setAngle(0).setLength(l1.p2.x).setAngle(angle);
             rockSpd = new Point3D(l2.p2.x, l2.p2.y, -l1.p2.y);
         }
 
@@ -147,7 +145,8 @@ public class Main
         while(true)
         {
             //first we use old speed
-            Point3D newRockPos = rockPos.add(rockSpd.multiply(deltaT));
+            // rocket speed is in mps but position is in pixels so we need to divide speed by ppm ratio
+            Point3D newRockPos = rockPos.add(rockSpd.multiply(deltaT/PIXELS_PER_METER));
 
             //save new position
             trajectoryPoints.add(newRockPos);
@@ -188,7 +187,7 @@ public class Main
 
         ActuallyUsefulLine line = new ActuallyUsefulLine();
         line.setAngle(360.0*rand.nextDouble());
-        line.setLength((double)rand.nextInt(MAX_WIND)+1);
+        line.setLength(rand.nextDouble()*MAX_WIND);
 
         wind = new Point2D.Double(line.p2.x,line.p2.y);
     }

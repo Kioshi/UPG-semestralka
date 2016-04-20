@@ -40,10 +40,11 @@ public class ActuallyUsefulLine
     }
 
 
-    void setLength(double len)
+    ActuallyUsefulLine setLength(double len)
     {
         ActuallyUsefulLine v = unitVector();
         p2 = new Point2D.Double(p1.x + v.dx() * len, p1.y + v.dy() * len);
+        return this;
     }
 
     double angle()
@@ -61,7 +62,7 @@ public class ActuallyUsefulLine
             return theta_normalized;
     }
 
-    void setAngle(double angle)
+    ActuallyUsefulLine setAngle(double angle)
     {
         double angleR = deg2rad(angle);
         double l = length();
@@ -71,16 +72,20 @@ public class ActuallyUsefulLine
 
         p2.x = p1.x + dx;
         p2.y = p1.y + dy;
+
+        return this;
     }
 
-    void setP1(Point2D.Double P1)
+    ActuallyUsefulLine setP1(Point2D.Double P1)
     {
         p1 = P1;
+        return this;
     }
 
-    void setP2(Point2D.Double P2)
+    ActuallyUsefulLine setP2(Point2D.Double P2)
     {
         p2 = P2;
+        return this;
     }
 
 
