@@ -22,24 +22,24 @@ import java.util.Scanner;
 
 public class Main
 {
-    public static final boolean DEBUG = false; // T-T zlatej #define DEBUG nebo aspon globalni konstanta
-    public static final int BLAST_RADIUS = 3;
-    public static final int MAX_WIND = 10;
+    static final boolean DEBUG = false; // T-T zlatej #define DEBUG nebo aspon globalni konstanta
+    static final int BLAST_RADIUS = 3;
+    static final int MAX_WIND = 5;
     private static final int ATTEMPTS_PER_WIND = 5;
-    public static int[][] map;
-    public static int h;
-    public static int w;
-    public static Point2D.Double player;
-    public static Point2D.Double target;
-    public static Point2D.Double blast;
-    public static Point2D.Double wind;
-    public static BufferedImage mapImage;
-    public static ArrayList<Point3D> trajectoryPoints = new ArrayList<>();
     private static final double PIXELS_PER_METER = 10.0;
+    private static int[][] map;
+    private static int h;
+    private static int w;
+    static Point2D.Double player;
+    static Point2D.Double target;
+    static Point2D.Double blast;
+    static Point2D.Double wind;
+    static BufferedImage mapImage;
+    static ArrayList<Point3D> trajectoryPoints = new ArrayList<>();
 
-    public static JFrame frame;
+    private static JFrame frame;
 
-    public static Scanner scanner;
+    private static Scanner scanner;
 
     public static void main(String[] args) throws IOException
     {

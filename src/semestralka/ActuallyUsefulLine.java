@@ -5,9 +5,9 @@ import java.awt.geom.Point2D;
 /**
  * Created by Štěpán Martínek on 13.03.2016.
  */
-public class ActuallyUsefulLine
+class ActuallyUsefulLine
 {
-    Point2D.Double p1;
+    private Point2D.Double p1;
     Point2D.Double p2;
 
     ActuallyUsefulLine(Point2D.Double P1, Point2D.Double P2)
@@ -16,18 +16,18 @@ public class ActuallyUsefulLine
         p2 = P2;
     }
 
-    public ActuallyUsefulLine()
+    ActuallyUsefulLine()
     {
         p1 = new Point2D.Double(0,0);
         p2 = new Point2D.Double(1,1);
     }
 
-    static double deg2rad(double x)
+    private static double deg2rad(double x)
     {
         return x * Math.PI/180.0;
     }
 
-    static double rad2deg(double x)
+    private static double rad2deg(double x)
     {
         return x * 180.0/Math.PI;
     }
@@ -89,7 +89,7 @@ public class ActuallyUsefulLine
     }
 
 
-    ActuallyUsefulLine unitVector()
+    private ActuallyUsefulLine unitVector()
     {
         double x = p2.x- p1.x;
         double y = p2.y - p1.y;
@@ -98,12 +98,12 @@ public class ActuallyUsefulLine
         return new ActuallyUsefulLine(p1, new Point2D.Double(p1.x + x/len, p1.y + y/len));
     }
 
-    double dx()
+    private double dx()
     {
         return p2.x - p1.x;
     }
 
-    double dy()
+    private double dy()
     {
         return p2.y - p1.y;
     }
@@ -147,8 +147,8 @@ public class ActuallyUsefulLine
 
 
     //This is invisible, next few line you see contains only empty lines. Nothing to see here
-    public static final int MAX_MISS_STRINGS = 8;
-    public static final String[] missStrings =
+    static final int MAX_MISS_STRINGS = 8;
+    static final String[] missStrings =
     {
             "Once upon a time there was a nice little village. Then some !@#$ dropped bomb on it.",
             "Rocket hit orphanage nearby.",
