@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="4da0a462-6dfa-434f-9b1b-4fd86988bf65" name="Default" comment="Added charts, changed trajectory from points to line, some game logic fix.">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/jcommon_1_0_17.xml" />
+    <list default="true" id="4da0a462-6dfa-434f-9b1b-4fd86988bf65" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/semestralka.iml" afterPath="$PROJECT_DIR$/semestralka.iml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/semestralka/Main.java" afterPath="$PROJECT_DIR$/src/semestralka/Main.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/semestralka/MapPanel.java" afterPath="$PROJECT_DIR$/src/semestralka/MapPanel.java" />
     </list>
     <ignored path="UPG-semestralka.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -31,8 +28,8 @@
       <file leaf-file-name="Main.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/semestralka/Main.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="197">
-              <caret line="52" column="38" selection-start-line="52" selection-start-column="38" selection-end-line="52" selection-end-column="38" />
+            <state relative-caret-position="95">
+              <caret line="40" column="48" selection-start-line="40" selection-start-column="48" selection-end-line="40" selection-end-column="48" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -558,6 +555,14 @@
       <option name="presentableId" value="Default" />
       <updated>1461177580414</updated>
     </task>
+    <task id="LOCAL-00001" summary="Added charts, changed trajectory from points to line, some game logic fix.">
+      <created>1462398029081</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1462398029081</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -707,8 +712,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/semestralka/Main.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="197">
-          <caret line="52" column="38" selection-start-line="52" selection-start-column="38" selection-end-line="52" selection-end-column="38" />
+        <state relative-caret-position="95">
+          <caret line="40" column="48" selection-start-line="40" selection-start-column="48" selection-end-line="40" selection-end-column="48" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>

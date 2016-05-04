@@ -38,7 +38,7 @@ public class Main
     static final int BLAST_RADIUS = 3;
     static final int MAX_WIND = 5;
     private static final int ATTEMPTS_PER_WIND = 5;
-    private static final double PIXELS_PER_METER = 10.0;
+    private static final double METERS_PER_PIXEL = 10.0;
     private static int[][] map;
     private static int h;
     private static int w;
@@ -81,7 +81,7 @@ public class Main
 
     private static void play()
     {
-        System.out.println("Player-Target air distance: " + player.distance(target)*PIXELS_PER_METER);
+        System.out.println("Player-Target air distance: " + player.distance(target)* METERS_PER_PIXEL);
         System.out.println("Player heigh: " + map[(int)player.x][(int)player.y]);
         System.out.println("Target heigh: " + map[(int)target.x][(int)target.y]);
 
@@ -193,7 +193,7 @@ public class Main
         {
             //first we use old speed
             // rocket speed is in mps but position is in pixels so we need to divide speed by ppm ratio
-            Point3D newRockPos = rockPos.add(rockSpd.multiply(deltaT/PIXELS_PER_METER));
+            Point3D newRockPos = rockPos.add(rockSpd.multiply(deltaT/ METERS_PER_PIXEL));
 
             //save new position
             trajectoryPoints.add(newRockPos);
@@ -282,7 +282,7 @@ public class Main
         {
             //first we use old speed
             // rocket speed is in mps but position is in pixels so we need to divide speed by ppm ratio
-            Point3D newRockPos = rockPos.add(rockSpd.multiply(deltaT/PIXELS_PER_METER));
+            Point3D newRockPos = rockPos.add(rockSpd.multiply(deltaT/ METERS_PER_PIXEL));
 
             //save new position
             elevationPoints.add(newRockPos);
@@ -323,7 +323,7 @@ public class Main
         for (Point3D point : elevationPoints)
         {
             ActuallyUsefulLine line = new ActuallyUsefulLine(new Point2D.Double(0,0),new Point2D.Double(point.getX(),point.getY()));
-            elevationData.add(line.length()*PIXELS_PER_METER,point.getZ());
+            elevationData.add(line.length()* METERS_PER_PIXEL,point.getZ());
         }
         XYSeriesCollection ds = new XYSeriesCollection();
         ds.addSeries(elevationData);
@@ -333,7 +333,7 @@ public class Main
                 true, true, false); // legends, tooltips, urls
         NumberAxis Xaxis = (NumberAxis)((XYPlot)chart.getPlot()).getDomainAxis();
         double maxRange = Math.sqrt(w*w + h*h);
-        Xaxis.setRange(0,maxRange*PIXELS_PER_METER);
+        Xaxis.setRange(0,maxRange* METERS_PER_PIXEL);
 
         elevationFrame = new JFrame("Elevation graph");
         elevationFrame.add(new ChartPanel(chart));
@@ -359,7 +359,7 @@ public class Main
         for (Point3D point : trajectoryPoints)
         {
             ActuallyUsefulLine line = new ActuallyUsefulLine(new Point2D.Double(player.getX(),player.getY()),new Point2D.Double(point.getX(),point.getY()));
-            trajectoryData.add(line.length()*PIXELS_PER_METER,point.getZ());
+            trajectoryData.add(line.length()* METERS_PER_PIXEL,point.getZ());
             maxHeigh = Math.max(maxHeigh,(int)point.getZ());
         }
 
@@ -371,7 +371,7 @@ public class Main
         {
             ActuallyUsefulLine line = new ActuallyUsefulLine(new Point2D.Double(player.getX(),player.getY()),new Point2D.Double(target.getX(),target.getY()));
             line.setLength(i);
-            terrainData.add(i*PIXELS_PER_METER,map[(int)line.p2.getX()][(int)line.p2.getY()]);
+            terrainData.add(i* METERS_PER_PIXEL,map[(int)line.p2.getX()][(int)line.p2.getY()]);
             maxHeigh = Math.max(maxHeigh,map[(int)line.p2.getX()][(int)line.p2.getY()]);
         }
         terrainData.add(0,map[(int)target.getX()][(int)target.getY()]);
@@ -383,7 +383,7 @@ public class Main
         collection1.addSeries(trajectoryData);
         XYItemRenderer renderer1 = new XYLineAndShapeRenderer(true, false);
         ValueAxis domain = new NumberAxis("Distance [m]");
-        domain.setRange(0,playerTargetDistance*PIXELS_PER_METER);
+        domain.setRange(0,playerTargetDistance* METERS_PER_PIXEL);
         ValueAxis range = new NumberAxis("Heigh [m]");
         range.setRange(0,maxHeigh + 50);
 
