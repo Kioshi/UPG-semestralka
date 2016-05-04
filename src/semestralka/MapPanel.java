@@ -11,23 +11,25 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
+import static semestralka.Main.trajectoryPoints;
+
 /**
  * Created by Štěpán Martínek on 13.03.2016.
  */
-public class MapPanel extends JPanel
+class MapPanel extends JPanel
 {
 
     private static final boolean DEBUG = Main.DEBUG;
     private static final int ICON_SIZE = 15;
     private static final int WIND_SCALE = 2;
-    private static final int TRAJECTORY_POINT_SIZE = 1;
-    public int width;
-    public int height;
+    private static final int TRAJECTORY_STROKE = 2;
+    private int width;
+    private int height;
 
-    public static final int CROSS_SIZE = 5;
+    private static final int CROSS_SIZE = 5;
 
-    BufferedImage player;
-    BufferedImage target;
+    private BufferedImage player;
+    private BufferedImage target;
 
     MapPanel(int w, int h) throws IOException
     {
@@ -79,7 +81,7 @@ public class MapPanel extends JPanel
             g.drawString(String.format("%.2f",x), startX, startY - Main.MAX_WIND * WIND_SCALE);
     }
 
-    public void drawArrow(Graphics2D g2,double x1, double y1, double x2, double y2,double lineThickness)
+    private void drawArrow(Graphics2D g2, double x1, double y1, double x2, double y2, double lineThickness)
     {
 
         Double sx, sy, dv, kx, ky;
@@ -144,15 +146,20 @@ public class MapPanel extends JPanel
         g.drawImage(Main.mapImage,0,0,width,height,null);
     }
 
-    void drawTrajectory(Graphics2D g)
+    private void drawTrajectory(Graphics2D g)
     {
-        if (Main.trajectoryPoints.isEmpty())
+        if (trajectoryPoints.isEmpty())
             return;
 
-        for (Point3D point : Main.trajectoryPoints)
+        for (int i=1; i < trajectoryPoints.size(); i++)
         {
+            Point3D p1 = trajectoryPoints.get(i-1);
+            Point3D p2 = trajectoryPoints.get(i);
             g.setColor(Color.RED);
-            g.fillOval((int)point.getX() - TRAJECTORY_POINT_SIZE, (int)point.getY() - TRAJECTORY_POINT_SIZE,  TRAJECTORY_POINT_SIZE*2, TRAJECTORY_POINT_SIZE*2);
+            Stroke stroke = g.getStroke();
+            g.setStroke(new BasicStroke(TRAJECTORY_STROKE));
+            g.drawLine((int)p1.getX(),(int)p1.getY(),(int)p2.getX(),(int)p2.getY());
+            g.setStroke(stroke);
         }
     }
 
