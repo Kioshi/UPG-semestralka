@@ -106,12 +106,8 @@ public class Main
                 }
             }
 
-            double angle = 0.0;
-            if (!isVisualisation)
-            {
-                System.out.print("Angle: ");
-                angle = scanner.nextDouble();
-            }
+            System.out.print("Angle: ");
+            double angle = scanner.nextDouble();
             System.out.print("Elevation: ");
             double elevation = scanner.nextDouble();
             if (elevation < 0.0 || elevation > 90.0)
@@ -134,7 +130,7 @@ public class Main
             if (isVisualisation)
             {
                 generateElevationData(startSpeed,elevation);
-                updateVisualisation();
+                updateVisualisation(angle);
                 continue;
             }
 
@@ -173,11 +169,6 @@ public class Main
         double b = 0.05;
         Point3D windSpeed = forVisualization ? new Point3D(0,0,0) : new Point3D(wind.x, wind.y, 0);
 
-        if (forVisualization)
-        {
-            ActuallyUsefulLine angleLine = new ActuallyUsefulLine(new Point2D.Double(player.x,player.y),new Point2D.Double(target.x,target.y));
-            angle = angleLine.angle();
-        }
         {
             ActuallyUsefulLine l1 = new ActuallyUsefulLine();
             l1.setAngle(elevation).setLength(startSpeed);
@@ -304,10 +295,10 @@ public class Main
                 break;
         }
     }
-    private static void updateVisualisation()
+    private static void updateVisualisation(double angle)
     {
         updateElevationGraph();
-        updateTerrainCutGraph();
+        updateTerrainCutGraph(angle);
     }
 
     private static void updateElevationGraph()
@@ -344,7 +335,7 @@ public class Main
 
     }
 
-    private static void updateTerrainCutGraph()
+    private static void updateTerrainCutGraph(double angle)
     {
         if (trajectoryPoints.size() < 2)
             return;
@@ -364,17 +355,20 @@ public class Main
         }
 
         XYSeries terrainData = new XYSeries("Terrain cut");
-        int playerTargetDistance = (int)player.distance(target);
         terrainData.add(0,map[(int)player.getX()][(int)player.getY()]);
-
-        for(int i = 1; i < playerTargetDistance; i++)
+        int distance = 1;
+        for(int i = 1; ; i++)
         {
-            ActuallyUsefulLine line = new ActuallyUsefulLine(new Point2D.Double(player.getX(),player.getY()),new Point2D.Double(target.getX(),target.getY()));
+            ActuallyUsefulLine line = new ActuallyUsefulLine();
+            line.setP1(new Point2D.Double(player.getX(),player.getY()));
             line.setLength(i);
+            line.setAngle(angle);
+            if (line.p2.x >= w || line.p2.x < 0 || line.p2.y >= h || line.p2.y < 0)
+                break;
+            distance = i;
             terrainData.add(i* METERS_PER_PIXEL,map[(int)line.p2.getX()][(int)line.p2.getY()]);
             maxHeigh = Math.max(maxHeigh,map[(int)line.p2.getX()][(int)line.p2.getY()]);
         }
-        terrainData.add(0,map[(int)target.getX()][(int)target.getY()]);
 
         JFreeChart chart;
         XYPlot plot = new XYPlot();
@@ -383,7 +377,7 @@ public class Main
         collection1.addSeries(trajectoryData);
         XYItemRenderer renderer1 = new XYLineAndShapeRenderer(true, false);
         ValueAxis domain = new NumberAxis("Distance [m]");
-        domain.setRange(0,playerTargetDistance* METERS_PER_PIXEL);
+        domain.setRange(0,distance* METERS_PER_PIXEL);
         ValueAxis range = new NumberAxis("Heigh [m]");
         range.setRange(0,maxHeigh + 50);
 
