@@ -114,22 +114,22 @@ class MapPanel extends JPanel
     private void drawBlastRadius(Graphics2D g)
     {
         g.setColor(Color.ORANGE);
-        Point2D.Double point = Main.blast;
+        Point3D point = Main.blast;
         if (point == null)
             return;
 
-        g.fillOval((int)(point.x - Main.BLAST_RADIUS), (int)(point.y  - Main.BLAST_RADIUS), Main.BLAST_RADIUS*2, Main.BLAST_RADIUS*2);
+        g.fillOval((int)(point.getX() - Main.blastRadius), (int)(point.getY()  - Main.blastRadius), (int)Main.blastRadius*2, (int)Main.blastRadius*2);
     }
 
     private void drawTarget(Graphics2D g)
     {
-        g.drawImage(target,(int)(Main.target.x-ICON_SIZE/2),(int)(Main.target.y-ICON_SIZE/2),ICON_SIZE,ICON_SIZE,null);
+        g.drawImage(target,(int)(Main.target.getX()-ICON_SIZE/2),(int)(Main.target.getY()-ICON_SIZE/2),ICON_SIZE,ICON_SIZE,null);
     }
 
 
     private void drawPlayer(Graphics2D g)
     {
-        g.drawImage(player,(int)(Main.player.x-ICON_SIZE/2),(int)(Main.player.y-ICON_SIZE/2),ICON_SIZE,ICON_SIZE,null);
+        g.drawImage(player,(int)(Main.player.getX()-ICON_SIZE/2),(int)(Main.player.getY()-ICON_SIZE/2),ICON_SIZE,ICON_SIZE,null);
     }
 
     private void drawCross(Graphics2D g, Color color, Point2D.Double point)

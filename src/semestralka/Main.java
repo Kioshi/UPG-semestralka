@@ -35,19 +35,27 @@ import java.util.Scanner;
 class Main
 {
     static final boolean DEBUG = false; // T-T zlatej #define DEBUG nebo aspon globalni konstanta
-    static final int BLAST_RADIUS = 3;
-    static final int MAX_WIND = 5;
+    private static final double BLAST_RADIUS = 3;
+    private static final double BLAST_RADIUS_REDUCE = 1.5;
+    static final int MAX_WIND = 20;
     private static final int ATTEMPTS_PER_WIND = 5;
     private static final double METERS_PER_PIXEL = 10.0;
     private static final double ROCKET_SPEED_STEP = 10.0;
+    private static final double MAX_SPEED_DEVIATION_PCT = 10.0;
+    private static final double MAX_ANGLE_DEVIATION = 2.0;
+    private static final double MAX_ELEVATION_DEVIATION = 4.0;
+    private static final double BLAST_REDUCTION_CHANCE_PCT = 5.0;
+    private static final double MIDAIR_EXPLOSION_CHANCE_PCT = 0.005;
     private static double[][] map;
+    static double blastRadius = BLAST_RADIUS;
     private static int h;
     private static int w;
-    static Point2D.Double player;
-    static Point2D.Double target;
-    static Point2D.Double blast;
+    static Point3D player;
+    static Point3D target;
+    static Point3D blast;
     static Point2D.Double wind;
     static BufferedImage mapImage;
+
     final static ArrayList<Point3D> trajectoryPoints = new ArrayList<>();
 
     private static JFrame mainFrame;
@@ -86,8 +94,8 @@ class Main
     private static void play()
     {
         System.out.println("Player-Target air distance: " + player.distance(target)* METERS_PER_PIXEL);
-        System.out.println("Player heigh: " + map[(int)player.x][(int)player.y]);
-        System.out.println("Target heigh: " + map[(int)target.x][(int)target.y]);
+        System.out.println("Player heigh: " + map[(int)player.getX()][(int)player.getY()]);
+        System.out.println("Target heigh: " + map[(int)target.getX()][(int)target.getY()]);
 
         int attempts = 0;
         while(true)
@@ -113,8 +121,12 @@ class Main
 
             System.out.print("Angle: ");
             double angle = scanner.nextDouble();
+            if (!isVisualisation)
+                angle = getDeviatedFlat(angle,MAX_ANGLE_DEVIATION);
             System.out.print("Elevation: ");
             double elevation = scanner.nextDouble();
+            if (!isVisualisation)
+                elevation = getDeviatedFlat(elevation, MAX_ELEVATION_DEVIATION);
             if (elevation < 0.0 || elevation > 90.0)
             {
                 System.out.println("Wrong elevation! Elevation must be in 0-90 interval");
@@ -124,6 +136,8 @@ class Main
 
             System.out.print("Rocket speed: ");
             double startSpeed = scanner.nextDouble();
+            if (!isVisualisation)
+                startSpeed = getDeviatedPct(startSpeed, MAX_SPEED_DEVIATION_PCT);
             if (startSpeed < 0.0)
             {
                 System.out.println("Wrong rocket speed! Rocket speed cant be negative.");
@@ -146,6 +160,15 @@ class Main
                 continue;
             }
 
+            Random random = new Random();
+            if (random.nextDouble()*100.0 < BLAST_REDUCTION_CHANCE_PCT)
+            {
+                System.out.println("Rocket failed! Blast radius was lesser than expected. Who the hell bought this cheap sh*t?");
+                blastRadius = BLAST_RADIUS_REDUCE;
+            }
+            else
+                blastRadius = BLAST_RADIUS;
+
             if (target.distance(blast) <= BLAST_RADIUS)
             {
                 System.out.println("You won! " + (attempts > 1 ? "If you really consider this win when it took you so many (" + attempts + ") attempts!" : ""));
@@ -163,10 +186,24 @@ class Main
         repaint();
     }
 
+    private static double getDeviatedFlat(double base, double maxDeviation)
+    {
+        Random random = new Random();
+        double deviation = random.nextDouble()*(maxDeviation*2.0) - maxDeviation;
+        return base + deviation;
+    }
+
+    private static double getDeviatedPct(double base, double maxPct)
+    {
+        Random random = new Random();
+        double deviation = random.nextDouble()*maxPct/100.0 * (random.nextBoolean() ? -1 : 1);
+        return base * (1.0 +deviation);
+    }
+
     private static void launchRocket(double angle, double elevation, double startSpeed, boolean forVisualization)
     {
         trajectoryPoints.clear();
-        Point3D rockPos = new Point3D(player.x, player.y, map[(int)player.x][(int)player.y]);
+        Point3D rockPos = player;
         double deltaT = 0.01;
         Point3D rockSpd;
         double g = 10.0;
@@ -215,10 +252,19 @@ class Main
                 break;
             }
 
+
+            Random random = new Random();
+            if (!forVisualization && ((random.nextDouble()*100.0) < MIDAIR_EXPLOSION_CHANCE_PCT))
+            {
+                System.out.println("Rocked exploded mid-air. Next time dont buy rockets in North Korea!");
+                blast = rockPos;
+                break;
+            }
+
             if (rockPos.getZ() <= map[(int)rockPos.getX()][(int)rockPos.getY()])
             {
                 if (!forVisualization)
-                    blast = new Point2D.Double(rockPos.getX(),rockPos.getY());
+                    blast = rockPos;
                 break;
             }
         }
@@ -239,6 +285,11 @@ class Main
     {
         mainFrame.toFront();
         mainFrame.repaint();
+        if (!DEBUG)
+        {
+            mainFrame.setAlwaysOnTop(true);
+            mainFrame.setAlwaysOnTop(false);
+        }
     }
 
     private static void createWindow() throws IOException
@@ -249,7 +300,8 @@ class Main
         mainFrame.setSize(w + 50, h + 50);
         mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         mainFrame.setLocationRelativeTo(null);
-        mainFrame.setAlwaysOnTop(true);
+        if (DEBUG)
+            mainFrame.setAlwaysOnTop(true);
         mainFrame.setVisible(true);
     }
 
@@ -292,10 +344,10 @@ class Main
             if (rockPos.getX() < 0 || rockPos.getY() < 0 || rockPos.getX() >= w || rockPos.getY() >= h || rockPos.getZ() < 0)
                 break;
         }
-        
+
         return new Point3D(0,0,0).distance(rockPos)* METERS_PER_PIXEL;
     }
-    
+
     private static void updateVisualisation(double angle, double elevation)
     {
         updateElevationGraph(elevation);
@@ -314,7 +366,7 @@ class Main
         XYSeriesCollection ds = new XYSeriesCollection();
         ds.addSeries(elevationData);
         JFreeChart chart = ChartFactory.createXYLineChart("Elevation chart",
-                "Distance [m]", "Heigh [m]",
+                "Start Rocket Speed [m/s]", "Distance [m]",
                 ds, PlotOrientation.VERTICAL,
                 true, true, false); // legends, tooltips, urls
 
@@ -452,8 +504,8 @@ class Main
 
         w = dataInputStream.readInt();
         h = dataInputStream.readInt();
-        player = new Point2D.Double(dataInputStream.readInt(),dataInputStream.readInt());
-        target = new Point2D.Double(dataInputStream.readInt(),dataInputStream.readInt());
+        Point2D.Double p = new Point2D.Double(dataInputStream.readInt(),dataInputStream.readInt());
+        Point2D.Double t = new Point2D.Double(dataInputStream.readInt(),dataInputStream.readInt());
 
         map = new double[w][h];
         int minH = Integer.MAX_VALUE;
@@ -471,6 +523,9 @@ class Main
 
         mapImage = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
         int[] srcPixels = ((DataBufferInt) mapImage.getRaster().getDataBuffer()).getData();
+
+        player = new Point3D(p.x,p.y,map[(int)p.x][(int)p.y]);
+        target = new Point3D(t.x,t.y,map[(int)t.x][(int)t.y]);
 
         for (int j =0; j <h; j++)
             for (int i =0; i <w; i++)
