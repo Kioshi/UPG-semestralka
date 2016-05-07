@@ -32,25 +32,23 @@ import java.util.Scanner;
  */
 
 
-public class Main
+class Main
 {
     static final boolean DEBUG = false; // T-T zlatej #define DEBUG nebo aspon globalni konstanta
     static final int BLAST_RADIUS = 3;
     static final int MAX_WIND = 5;
     private static final int ATTEMPTS_PER_WIND = 5;
     private static final double METERS_PER_PIXEL = 10.0;
-    private static int[][] map;
+    private static final double ROCKET_SPEED_STEP = 10.0;
+    private static double[][] map;
     private static int h;
     private static int w;
-    private static int minH;
-    private static int maxH;
     static Point2D.Double player;
     static Point2D.Double target;
     static Point2D.Double blast;
     static Point2D.Double wind;
     static BufferedImage mapImage;
-    static ArrayList<Point3D> trajectoryPoints = new ArrayList<>();
-    private static ArrayList<Point3D> elevationPoints = new ArrayList<>();
+    final static ArrayList<Point3D> trajectoryPoints = new ArrayList<>();
 
     private static JFrame mainFrame;
     private static JFrame elevationFrame;
@@ -91,6 +89,7 @@ public class Main
             System.out.print("Choose action (S - shoot, V - visualization): ");
             String action = scanner.next().toUpperCase();
             boolean isVisualisation = action.equals("V");
+            trajectoryPoints.clear();
 
             if (!isVisualisation)
             {
@@ -129,8 +128,7 @@ public class Main
 
             if (isVisualisation)
             {
-                generateElevationData(startSpeed,elevation);
-                updateVisualisation(angle);
+                updateVisualisation(angle, elevation);
                 continue;
             }
 
@@ -162,7 +160,7 @@ public class Main
     private static void launchRocket(double angle, double elevation, double startSpeed, boolean forVisualization)
     {
         trajectoryPoints.clear();
-        Point3D rockPos = new Point3D(player.x, player.y, (double)map[(int)player.x][(int)player.y]);
+        Point3D rockPos = new Point3D(player.x, player.y, map[(int)player.x][(int)player.y]);
         double deltaT = 0.01;
         Point3D rockSpd;
         double g = 10.0;
@@ -171,7 +169,7 @@ public class Main
 
         {
             ActuallyUsefulLine l1 = new ActuallyUsefulLine();
-            l1.setAngle(elevation).setLength(startSpeed);
+            l1.setAngle(elevation).setLength(startSpeed/METERS_PER_PIXEL);
             ActuallyUsefulLine l2 = new ActuallyUsefulLine();
             l2.setAngle(0).setLength(l1.p2.x).setAngle(angle);
             rockSpd = new Point3D(l2.p2.x, l2.p2.y, -l1.p2.y);
@@ -183,15 +181,14 @@ public class Main
         while(true)
         {
             //first we use old speed
-            // rocket speed is in mps but position is in pixels so we need to divide speed by ppm ratio
-            Point3D newRockPos = rockPos.add(rockSpd.multiply(deltaT/ METERS_PER_PIXEL));
+            Point3D newRockPos = rockPos.add(rockSpd.multiply(deltaT));
 
             //save new position
             trajectoryPoints.add(newRockPos);
 
             //recaluculate speed
             // y = vt + (0,0,-1)*g*deltaT
-            Point3D newRockSpd = rockSpd.add(new Point3D(0,0,-1).multiply(g*deltaT));
+            Point3D newRockSpd = rockSpd.add(new Point3D(0,0,-1/METERS_PER_PIXEL).multiply(g*deltaT));
             // y = vw - vt
             Point3D temp = windSpeed.subtract(rockSpd);
             // (x)*b*deltaT
@@ -250,9 +247,8 @@ public class Main
         mainFrame.setVisible(true);
     }
 
-    private static void generateElevationData(double rocketSpeed, double elevation)
+    private static double calculateElevationDistance(double rocketSpeed, double elevation)
     {
-        elevationPoints.clear();
         Point3D rockPos = new Point3D(0,0,0);
         double deltaT = 0.01;
         Point3D rockSpd;
@@ -261,11 +257,10 @@ public class Main
         Point3D windSpeed = new Point3D(0,0,0);
 
         {
-            ActuallyUsefulLine angleLine = new ActuallyUsefulLine(new Point2D.Double(0,0),new Point2D.Double(w,h));
             ActuallyUsefulLine l1 = new ActuallyUsefulLine();
-            l1.setAngle(elevation).setLength(rocketSpeed);
+            l1.setAngle(elevation).setLength(rocketSpeed/METERS_PER_PIXEL);
             ActuallyUsefulLine l2 = new ActuallyUsefulLine();
-            l2.setAngle(0).setLength(l1.p2.x).setAngle(angleLine.angle());
+            l2.setAngle(0).setLength(l1.p2.x);
             rockSpd = new Point3D(l2.p2.x, l2.p2.y, -l1.p2.y);
         }
 
@@ -273,14 +268,11 @@ public class Main
         {
             //first we use old speed
             // rocket speed is in mps but position is in pixels so we need to divide speed by ppm ratio
-            Point3D newRockPos = rockPos.add(rockSpd.multiply(deltaT/ METERS_PER_PIXEL));
-
-            //save new position
-            elevationPoints.add(newRockPos);
+            Point3D newRockPos = rockPos.add(rockSpd.multiply(deltaT));
 
             //recaluculate speed
             // y = vt + (0,0,-1)*g*deltaT
-            Point3D newRockSpd = rockSpd.add(new Point3D(0,0,-1).multiply(g*deltaT));
+            Point3D newRockSpd = rockSpd.add(new Point3D(0,0,-1).multiply(g*deltaT/METERS_PER_PIXEL));
             // y = vw - vt
             Point3D temp = windSpeed.subtract(rockSpd);
             // (x)*b*deltaT
@@ -294,28 +286,25 @@ public class Main
             if (rockPos.getX() < 0 || rockPos.getY() < 0 || rockPos.getX() >= w || rockPos.getY() >= h || rockPos.getZ() < 0)
                 break;
         }
+        
+        return new Point3D(0,0,0).distance(rockPos)* METERS_PER_PIXEL;
     }
-    private static void updateVisualisation(double angle)
+    
+    private static void updateVisualisation(double angle, double elevation)
     {
-        updateElevationGraph();
+        updateElevationGraph(elevation);
         updateTerrainCutGraph(angle);
     }
 
-    private static void updateElevationGraph()
+    private static void updateElevationGraph(double elevation)
     {
-        if (elevationPoints.size() < 2)
-            return;
-
         if (elevationFrame != null)
             elevationFrame.dispose();
 
         XYSeries elevationData = new XYSeries("Elevation");
-        elevationData.add(0,0);
-        for (Point3D point : elevationPoints)
-        {
-            ActuallyUsefulLine line = new ActuallyUsefulLine(new Point2D.Double(0,0),new Point2D.Double(point.getX(),point.getY()));
-            elevationData.add(line.length()* METERS_PER_PIXEL,point.getZ());
-        }
+        for (int i = 1; i <= 20; i++)
+            elevationData.add(ROCKET_SPEED_STEP*i,calculateElevationDistance(ROCKET_SPEED_STEP*i, elevation));
+
         XYSeriesCollection ds = new XYSeriesCollection();
         ds.addSeries(elevationData);
         JFreeChart chart = ChartFactory.createXYLineChart("Elevation chart",
@@ -324,7 +313,7 @@ public class Main
                 true, true, false); // legends, tooltips, urls
         NumberAxis Xaxis = (NumberAxis)((XYPlot)chart.getPlot()).getDomainAxis();
         double maxRange = Math.sqrt(w*w + h*h);
-        Xaxis.setRange(0,maxRange* METERS_PER_PIXEL);
+        //Xaxis.setRange(0,maxRange* METERS_PER_PIXEL);
 
         elevationFrame = new JFrame("Elevation graph");
         elevationFrame.add(new ChartPanel(chart));
@@ -343,15 +332,15 @@ public class Main
         if (terrainFrame != null)
             terrainFrame.dispose();
 
-        int maxHeigh = Integer.MIN_VALUE;
+        double maxHeigh = Double.MIN_VALUE;
 
         XYSeries trajectoryData = new XYSeries("Trajectory");
         trajectoryData.add(0,map[(int)player.getX()][(int)player.getY()]);
         for (Point3D point : trajectoryPoints)
         {
             ActuallyUsefulLine line = new ActuallyUsefulLine(new Point2D.Double(player.getX(),player.getY()),new Point2D.Double(point.getX(),point.getY()));
-            trajectoryData.add(line.length()* METERS_PER_PIXEL,point.getZ());
-            maxHeigh = Math.max(maxHeigh,(int)point.getZ());
+            trajectoryData.add(line.length()* METERS_PER_PIXEL,point.getZ()*METERS_PER_PIXEL);
+            maxHeigh = Math.max(maxHeigh,point.getZ());
         }
 
         XYSeries terrainData = new XYSeries("Terrain cut");
@@ -366,7 +355,7 @@ public class Main
             if (line.p2.x >= w || line.p2.x < 0 || line.p2.y >= h || line.p2.y < 0)
                 break;
             distance = i;
-            terrainData.add(i* METERS_PER_PIXEL,map[(int)line.p2.getX()][(int)line.p2.getY()]);
+            terrainData.add(i* METERS_PER_PIXEL,map[(int)line.p2.getX()][(int)line.p2.getY()]* METERS_PER_PIXEL);
             maxHeigh = Math.max(maxHeigh,map[(int)line.p2.getX()][(int)line.p2.getY()]);
         }
 
@@ -379,7 +368,7 @@ public class Main
         ValueAxis domain = new NumberAxis("Distance [m]");
         domain.setRange(0,distance* METERS_PER_PIXEL);
         ValueAxis range = new NumberAxis("Heigh [m]");
-        range.setRange(0,maxHeigh + 50);
+        range.setRange(0,maxHeigh* METERS_PER_PIXEL + 50);
 
         plot.setDataset(0, collection1);
         plot.setRenderer(0, renderer1);
@@ -417,27 +406,25 @@ public class Main
 
     private static void loadMap(String[] args) throws IOException
     {
-        DataInputStream dataInputStream = new DataInputStream(new FileInputStream("./terrens/" + (args.length > 0 ? args[0] : "terrain257x257_300_600")+".ter"));
+        DataInputStream dataInputStream = new DataInputStream(new FileInputStream("./terrens/" + (args.length > 0 ? args[0] : "terrain512x512_300_600")+".ter"));
 
         w = dataInputStream.readInt();
         h = dataInputStream.readInt();
         player = new Point2D.Double(dataInputStream.readInt(),dataInputStream.readInt());
         target = new Point2D.Double(dataInputStream.readInt(),dataInputStream.readInt());
 
-        map = new int[w][h];
-        minH = Integer.MAX_VALUE;
-        maxH = Integer.MIN_VALUE;
+        map = new double[w][h];
+        int minH = Integer.MAX_VALUE;
+        int maxH = Integer.MIN_VALUE;
 
         for (int j =0; j <h; j++)
             for (int i =0; i <w; i++)
             {
-                map[i][j] = dataInputStream.readInt();
+                int heigh = dataInputStream.readInt();
+                map[i][j] = heigh / METERS_PER_PIXEL;
 
-                if (i ==0 && j == 0)
-                    minH = maxH = map[i][j];
-
-                minH = Math.min(minH,map[i][j]);
-                maxH = Math.max(maxH,map[i][j]);
+                minH = Math.min(minH,heigh);
+                maxH = Math.max(maxH,heigh);
             }
 
         mapImage = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
@@ -446,7 +433,7 @@ public class Main
         for (int j =0; j <h; j++)
             for (int i =0; i <w; i++)
             {
-                int color = (int)(((map[i][j]-minH) / (double)(maxH-minH))*0xFF);
+                int color = (int)((((int)(map[i][j]*METERS_PER_PIXEL)-minH) / (double)(maxH-minH))*0xFF);
                 if (minH == maxH)
                     color = 128;
                 srcPixels[j * w + i] = new Color(color, color, color, 0xFF).getRGB();

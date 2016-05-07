@@ -23,8 +23,8 @@ class MapPanel extends JPanel
     private static final int ICON_SIZE = 15;
     private static final int WIND_SCALE = 2;
     private static final int TRAJECTORY_STROKE = 2;
-    private int width;
-    private int height;
+    final private int width;
+    final private int height;
 
     private static final int CROSS_SIZE = 5;
 
