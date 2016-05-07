@@ -52,6 +52,7 @@ class Main
 
     private static JFrame mainFrame;
     private static JFrame elevationFrame;
+    private static JFrame maxTerrainFrame;
     private static JFrame terrainFrame;
 
     private static Scanner scanner;
@@ -72,6 +73,8 @@ class Main
         mainFrame.dispose();
         if (elevationFrame != null)
             elevationFrame.dispose();
+        if (maxTerrainFrame != null)
+            maxTerrainFrame.dispose();
         if (terrainFrame != null)
             terrainFrame.dispose();
     }
@@ -293,7 +296,7 @@ class Main
     private static void updateVisualisation(double angle, double elevation)
     {
         updateElevationGraph(elevation);
-        updateTerrainCutGraph(angle);
+        updateTerrainCutGraphs(angle);
     }
 
     private static void updateElevationGraph(double elevation)
@@ -311,9 +314,6 @@ class Main
                 "Distance [m]", "Heigh [m]",
                 ds, PlotOrientation.VERTICAL,
                 true, true, false); // legends, tooltips, urls
-        NumberAxis Xaxis = (NumberAxis)((XYPlot)chart.getPlot()).getDomainAxis();
-        double maxRange = Math.sqrt(w*w + h*h);
-        //Xaxis.setRange(0,maxRange* METERS_PER_PIXEL);
 
         elevationFrame = new JFrame("Elevation graph");
         elevationFrame.add(new ChartPanel(chart));
@@ -324,27 +324,35 @@ class Main
 
     }
 
-    private static void updateTerrainCutGraph(double angle)
+    private static void updateTerrainCutGraphs(double angle)
     {
         if (trajectoryPoints.size() < 2)
             return;
+
+        if (maxTerrainFrame != null)
+            maxTerrainFrame.dispose();
 
         if (terrainFrame != null)
             terrainFrame.dispose();
 
         double maxHeigh = Double.MIN_VALUE;
+        double trajectoryHeigh = Double.MIN_VALUE;
 
         XYSeries trajectoryData = new XYSeries("Trajectory");
         trajectoryData.add(0,map[(int)player.getX()][(int)player.getY()]);
+        double trajectoryDistance = 1.0;
         for (Point3D point : trajectoryPoints)
         {
             ActuallyUsefulLine line = new ActuallyUsefulLine(new Point2D.Double(player.getX(),player.getY()),new Point2D.Double(point.getX(),point.getY()));
             trajectoryData.add(line.length()* METERS_PER_PIXEL,point.getZ()*METERS_PER_PIXEL);
             maxHeigh = Math.max(maxHeigh,point.getZ());
+            trajectoryDistance = line.length();
         }
 
-        XYSeries terrainData = new XYSeries("Terrain cut");
+        XYSeries terrainData = new XYSeries("Max terrain cut");
+        XYSeries terrainData2 = new XYSeries("Terrain cut");
         terrainData.add(0,map[(int)player.getX()][(int)player.getY()]);
+        terrainData2.add(0,trajectoryPoints.get(0).getZ()*METERS_PER_PIXEL);
         int distance = 1;
         for(int i = 1; ; i++)
         {
@@ -357,9 +365,35 @@ class Main
             distance = i;
             terrainData.add(i* METERS_PER_PIXEL,map[(int)line.p2.getX()][(int)line.p2.getY()]* METERS_PER_PIXEL);
             maxHeigh = Math.max(maxHeigh,map[(int)line.p2.getX()][(int)line.p2.getY()]);
+            if (i <= trajectoryDistance)
+            {
+                terrainData2.add(i* METERS_PER_PIXEL,map[(int)line.p2.getX()][(int)line.p2.getY()]* METERS_PER_PIXEL);
+            }
         }
+        terrainData2.add(trajectoryData.getMaxX(),trajectoryPoints.get(trajectoryPoints.size()-1).getZ()*METERS_PER_PIXEL);
 
-        JFreeChart chart;
+        JFreeChart chart = makeTerrainChart(trajectoryData,distance,maxHeigh,terrainData,"Max terrain profile");
+        JFreeChart chart2 = makeTerrainChart(trajectoryData,trajectoryDistance,-1.0,terrainData2, "Terrain profile");
+
+
+        maxTerrainFrame = new JFrame("Max terrain cut");
+        maxTerrainFrame.add(new ChartPanel(chart));
+        maxTerrainFrame.pack();
+        maxTerrainFrame.setVisible(true);
+        maxTerrainFrame.setAlwaysOnTop(true);
+        maxTerrainFrame.setAlwaysOnTop(false);
+
+        terrainFrame = new JFrame("Terrain cut");
+        terrainFrame.add(new ChartPanel(chart2));
+        terrainFrame.pack();
+        terrainFrame.setVisible(true);
+        terrainFrame.setAlwaysOnTop(true);
+        terrainFrame.setAlwaysOnTop(false);
+
+
+    }
+    private static JFreeChart makeTerrainChart(XYSeries trajectoryData, double distance, double maxHeigh, XYSeries terrainData, String name)
+    {
         XYPlot plot = new XYPlot();
 
         XYSeriesCollection collection1 = new XYSeriesCollection();
@@ -368,7 +402,8 @@ class Main
         ValueAxis domain = new NumberAxis("Distance [m]");
         domain.setRange(0,distance* METERS_PER_PIXEL);
         ValueAxis range = new NumberAxis("Heigh [m]");
-        range.setRange(0,maxHeigh* METERS_PER_PIXEL + 50);
+        if (maxHeigh > 0)
+            range.setRange(0,maxHeigh* METERS_PER_PIXEL + 50);
 
         plot.setDataset(0, collection1);
         plot.setRenderer(0, renderer1);
@@ -391,17 +426,7 @@ class Main
         plot.mapDatasetToDomainAxis(1, 1);
         plot.mapDatasetToRangeAxis(1, 1);
 
-        chart = new JFreeChart("Terrain profile", JFreeChart.DEFAULT_TITLE_FONT, plot, true);
-
-
-        terrainFrame = new JFrame("Elevation graph");
-        terrainFrame.add(new ChartPanel(chart));
-        terrainFrame.pack();
-        terrainFrame.setVisible(true);
-        terrainFrame.setAlwaysOnTop(true);
-        terrainFrame.setAlwaysOnTop(false);
-
-
+        return new JFreeChart(name, JFreeChart.DEFAULT_TITLE_FONT, plot, true);
     }
 
     private static void loadMap(String[] args) throws IOException
