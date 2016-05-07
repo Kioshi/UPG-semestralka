@@ -54,6 +54,9 @@ class Main
     private static JFrame elevationFrame;
     private static JFrame maxTerrainFrame;
     private static JFrame terrainFrame;
+    private static ChartPanel eleavtionCP;
+    private static ChartPanel terrainCP;
+    private static ChartPanel maxTerrainCP;
 
     private static Scanner scanner;
 
@@ -315,8 +318,13 @@ class Main
                 ds, PlotOrientation.VERTICAL,
                 true, true, false); // legends, tooltips, urls
 
-        elevationFrame = new JFrame("Elevation graph");
-        elevationFrame.add(new ChartPanel(chart));
+        if (elevationFrame == null)
+            elevationFrame = new JFrame("Elevation graph");
+
+        if (eleavtionCP != null)
+            elevationFrame.remove(eleavtionCP);
+        eleavtionCP = new ChartPanel(chart);
+        elevationFrame.add(eleavtionCP);
         elevationFrame.pack();
         elevationFrame.setVisible(true);
         elevationFrame.setAlwaysOnTop(true);
@@ -376,15 +384,24 @@ class Main
         JFreeChart chart2 = makeTerrainChart(trajectoryData,trajectoryDistance,-1.0,terrainData2, "Terrain profile");
 
 
-        maxTerrainFrame = new JFrame("Max terrain cut");
-        maxTerrainFrame.add(new ChartPanel(chart));
+        if (maxTerrainFrame == null)
+            maxTerrainFrame = new JFrame("Max terrain cut");
+
+        if (maxTerrainCP != null)
+            maxTerrainFrame.remove(maxTerrainCP);
+        maxTerrainCP = new ChartPanel(chart);
+        maxTerrainFrame.add(maxTerrainCP);
         maxTerrainFrame.pack();
         maxTerrainFrame.setVisible(true);
         maxTerrainFrame.setAlwaysOnTop(true);
         maxTerrainFrame.setAlwaysOnTop(false);
 
-        terrainFrame = new JFrame("Terrain cut");
-        terrainFrame.add(new ChartPanel(chart2));
+        if (terrainFrame == null)
+            terrainFrame = new JFrame("Terrain cut");
+        if (terrainCP != null)
+            terrainFrame.remove(terrainCP);
+        terrainCP = new ChartPanel(chart2);
+        terrainFrame.add(terrainCP);
         terrainFrame.pack();
         terrainFrame.setVisible(true);
         terrainFrame.setAlwaysOnTop(true);
