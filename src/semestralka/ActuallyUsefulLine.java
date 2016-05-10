@@ -59,7 +59,7 @@ class ActuallyUsefulLine
         if (Math.abs(theta_normalized - 360.0) < 1.0e-200)
             return 0.0;
         else
-            return theta_normalized;
+            return deg2rad(theta_normalized);
     }
 
     ActuallyUsefulLine setAngle(double angle)
@@ -107,58 +107,6 @@ class ActuallyUsefulLine
     {
         return p2.y - p1.y;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    //This is invisible, next few line you see contains only empty lines. Nothing to see here
-    static final int MAX_MISS_STRINGS = 8;
-    static final String[] missStrings =
-    {
-            "Once upon a time there was a nice little village. Then some !@#$ dropped bomb on it.",
-            "Rocket hit orphanage nearby.",
-            "Brand new school is gone.",
-            "Puppy shelter is now located in next village. On many different places...",
-            "Only bridge to civilization wen KABOOM. I don't think people will survive this winter.",
-            "Who thought that create military rocket testing area near inhabited area is good idea?",
-            "0 days since last rocket accident.",
-            "There are unexploded rockets everywhere! On the bright side squirrels in this area are setting new world-wide jump records."
-    };
 }
 
 
